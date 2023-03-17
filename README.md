@@ -160,7 +160,60 @@ spec:
 </p>
 </details>
 
+### 4. Services
+<details><summary>show</summary>
+<p>
+K8s services enable communication between various components within and outside the application. It helps us connect applications together with other applications or users. For example, our application has groups of parts running sections such as a group of serving frontend load to users and other group for running backend processes, and a third group connecting to an external data source. it's services that enable connectivity between these group of parts. Services enable the frontend application to be made available to end users. It helps communication between backend and frontend parts and helps in establishing connectivity to an external data source. Thus, services enable loose coupling between micro services in our application.
 
+- **NodePort service:** makes an internal port accessible on a port on the node.
+```yaml
+# nodeport-service-definition.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: [service-name]
+spec:
+  type: NodePort
+  ports:
+    - targetPort: [target-port]
+      port: [port] # Mandatory.
+      nodePort: [node-port] # range 3000-32767
+  selectors:
+    [pod-label-key]: [pod-label-value]
+```
+- **ClusterIP service:** create a virtual IP inside the cluster to enable communication between different services.
+```yaml
+# clusterip-service-definition.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: [service-name]
+spec:
+  type: ClusterIP
+  ports:
+    - targetPort: [target-port]
+      port: [port] # Mandatory.
+  selectors:
+    [pod-label-key]: [pod-label-value]
+```
+- **LoadBalancer service:** provisions a load balancer for our application in supported cloud providers. If we use it in a non supported provider like VirtualBox, it will have the same effect as NodePort.
+```yaml
+# nodeport-service-definition.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: [service-name]
+spec:
+  type: LoadBalancer
+  ports:
+    - targetPort: [target-port]
+      port: [port] # Mandatory.
+      nodePort: [node-port] # range 3000-32767
+  selectors:
+    [pod-label-key]: [pod-label-value]
+```
+</p>
+</details>
 
 
 

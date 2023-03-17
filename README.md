@@ -14,8 +14,9 @@
 - **Kubectl:** It is used to deploy and manage applications on a k8s cluster.
 
 
-## Pods
+## Kubernetes concepts
 
+### 1. Pods
 A pod is a single instance of an application (container). It's the smallest object that you can create in k8s. Pods usually have a one-to-one relationship with containers running your application. So to scale out add new pods, and to scale in remove pods. Not add additional containers to an existing pod to scale your application.
 
 However, we are not restricted to having a single container in a single pod. A single pod can have multiple containers except for the fact that they are usually not multiple containers at the same time. As said before, if the intention is to scale the application, then we would to create additional pods. But sometimes we might have a scenario where we have a helper container that might be doing some kind of supporting task for our application, such as processing a user, enter data, processing a file, uploader by a user, etc. and we want these helper containers to live alongside our application. In that scenarion, we can have both of these containers part of the same pod. The two containers can also communicate with each other directly by referring to each other as localhost since they share the same network space. Plus they can easily share the same storage space as well.
@@ -24,6 +25,7 @@ However, we are not restricted to having a single container in a single pod. A s
 - `$ kubectl [pod-name] --image [image-name]` - create a pod using cli aarguments
 
 ```yaml
+# pod-definition.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -40,13 +42,66 @@ spec:
 - `$ kubectl get pods` - get the list of pods created
 - `$ kubectl descripe pod [pod-name]` - get all the information about the pod when it was created
 
+### 2. Replication contollers & ReplicaSets
+The replication controller helps us run multiple instances of a single pod in the k8s cluster, thus providing high availability. So, does that mean we can't use a relication controller is we plan to have a single pod? No, even if we have a single pod, the replication controller can help by automatically bringing up a new pod when the existing one fails. Thus, the replication controller ensures that the specified number of pods are running at all times even if it's just one or one hundred.
 
+Another reason we need a replication controller is to create multiple pods to share the load accross them. For example, if we have a single pod serving a set of users, when the number of users increase, we deploy additional pods to balance the load. If the demand futher increases and if we were to run out of resources on the first  node, we could deploy pods across the other nodes in the cluster. The replication controller spans accross multiple nodes in the cluster.
 
+Replcation controllers and Replicasets have the same purpose. Replication controller is the older technology that is being replaced by replicaset. Replicaset is the new recommended way to set up replication.
 
+**Replication controllers & Replicasets definiton**
+```yaml
+# replication-controller-definition.yaml
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: [replication-controller-name]
+  labels:
+    [rc-label-key]: [rc-label-value]
+spec:
+  replicas: [number-of-replicas]
+  template:
+      metadata:
+        name: [pod-name]
+        labels:
+          [pod-label-key]: [pod-label-value]
+      spec:
+        containers:
+          - name: [container-name]
+            image: [container-image]
+```
 
+```yaml
+# replicaset-definition.yaml
+apiVersion: apps/v1
+kind: ReplicationSet
+metadata:
+  name: [replicationset-name]
+  labels:
+    [rs-label-key]: [rs-label-value]
+spec:
+  replicas: [number-of-replicas]
+  selector:
+    matchLabels:
+      [pod-label-key]: [pod-label-value]
+  template:
+      metadata:
+        name: [pod-name]
+        labels:
+          [pod-label-key]: [pod-label-value]
+      spec:
+        containers:
+          - name: [container-name]
+            image: [container-image]
+```
 
-
-
+- `$ kubectl create -f replication-controller-definition.yaml` - create a replica controller from its yaml definition file
+- `$ kubectl create -f replicaset-definition.yaml` - create a replicaset from its yaml definition file
+- `$ kubectl get replicaset`
+- `$ kubectl replace -f replicaset-definition.yaml` - scale replicaset after modifying the number of replicas in its definition file
+- `$ kubeclt scale --replicas=[number-of-replicas] -f replicaset-definition.yaml`- scale the replicaset without changing it definition file
+- `$ kubeclt scale --replicas=[number-of-replicas] -f replicaset [replicaset-name]`- scale the replicaset without changing it definition file
+- `$ kubectl delete replicaset [replicaset-name]` - delete a replicaset and the underlying pods
 
 
 

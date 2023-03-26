@@ -10,7 +10,7 @@
 - **Scheduler:** It is responsible for distributing work or containers across multiple nodes. It looks for newly created containers and assign them to nodes.
 - **Controller:** It is the brain behind the orchestration. It is responsible for noticing and responding when nodes, containers or endpoints go down. It makes decision to bring up new containers in such cases.
 - **Container runtime:** It is the underlying software that is used to run containers. It can be Docker, rkt or cri-o.
-- **Kubeet:** It is the agent that runs on each node in the cluster. The agent is responsible for making sure that the containers are running on the nodes as expected.
+- **Kubelet:** It is the agent that runs on each node in the cluster. The agent is responsible for making sure that the containers are running on the nodes as expected.
 - **Kubectl:** It is used to deploy and manage applications on a k8s cluster.
 
 

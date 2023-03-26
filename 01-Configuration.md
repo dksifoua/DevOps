@@ -127,3 +127,25 @@ Here are somethings to keep in mind when working with secrets.
 4. Consider third-party secrets store providers like AWS, GCP, Azure, Vault 
 </p>
 </details>
+
+## Security contexts
+
+<details><summary>show</summary>
+<p>
+
+**Docker security**
+Let us start with a host with docker installed on it.This host has a set of its own processes running such as a number of os processes, the docker daemon itself, etc. Now we run on the host an ubuntu docker container that run a process that sleep for an hour. Unlike VMs, containers are not really isolated from their host. Containers and the host sharethe same kernel. Containers are isolated using namespaces in linux. The host has a namespace and the container has their own namespace. All the processes run by the containers are in fact run on the host itself, but in their own namespace. As far as the docker container is concerned, it is in its own namespace and it can see its own processes only. It cannot see anything outside of it or in any other namespace. So when we list the processes inside the docker container, we see the sleep process with the process ID of 1. For the docker host, all processes of its own as well as those in the child namespaces are visible as just another process in the system. So when we list the processes on the host, we see a list a processes including the sleep command but with a different process ID. This is because the processes can have different process IDs in different namespaces and that's how docker isolates containers within a system.
+  
+Let us now look at users in context of security. The docker host has a set of users (root and non root user). By default, docker run processes within containers as the root user both inside the container and outside of the container in the host. Now, if we do not want the process within the container to run as the root user, we may set the user using the user option within the docker run command and specify the new user ID `docker run --user 1000 ubuntu sleep 3600`. The process will now run with the new user ID. Another way is to define the user in the docker image itself at the time of creation using the USER instruction then, build the custom image.
+  
+```
+ # Dockerfile
+FROM ubuntu
+
+USER 1000
+```
+When we run process inside a container as root user, it's the same root user on the host and it can do everything the root user can. To prevent that, docker implements a set of security features that limit the abilities of the root user within the container, so the root user within the container isn't really like the root user on the host. Docker uses linux capabilities to implement this. The full list of root user capabilities are at this location `/usr/include/linux/capability.h`. By default, docker containers with a limited set of capabilities and so the processes  running within the container do not have the priviledges to say, reboot the host or perform operations that can disrupt the host or other containers running on the same host. If we wish to override this behavior and provide additionnal privileges, use the `cap-add` option in the docker run command `docker run --cap-add MAC_ADMIN ubuntu`. Similarly we can drop `cap-drop` option to drop privileges or `privileged` to run the container with all the privileges.    
+  
+
+</p>
+</details>

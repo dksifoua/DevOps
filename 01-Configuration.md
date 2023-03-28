@@ -172,3 +172,33 @@ spec:
 ```
 </p>
 </details>
+
+## Service Accounts
+
+<details><summary>show</summary>
+<p>
+There are two types of accounts in k8s: a user account and a service account. The user account is used by humans (admin, developer, etc) and the service account is used machines (application). When we create a service account, k8s creates a secret that will used as a thentication bearer token. Each namespace in k8s has a default service account which is automatically mounted into every pod create in that namespace. The default service account only has permissions to query k8s api server.
+
+```bash
+$ kubectl get serviceaccounts
+$ kubectl describe serviceaccounts [service-account-name] 
+$ kubectl create serviceaccount [service-account-name]
+$ kubectl create -f service-account-definition.yaml
+```
+
+```yaml
+# service-account-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: [pod-name]
+  labels:
+    [label-key]: [label-value]
+spec:
+  containers:
+    - name: [container-name]
+      image: [container-image]
+  serviceAccount: [service-account-name]
+```
+</p>
+</details>

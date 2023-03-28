@@ -200,5 +200,9 @@ spec:
       image: [container-image]
   serviceAccount: [service-account-name]
 ```
+  
+ Newer version of k8s (1.24+) don't automatically create a toker for service accounts. We must create it manually
+  
+ `$ kubectl create token [service-account-name]`
 </p>
 </details>

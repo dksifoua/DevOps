@@ -206,3 +206,36 @@ spec:
  `$ kubectl create token [service-account-name]`
 </p>
 </details>
+
+## Resources requirements
+
+<details><summary>show</summary>
+<p>
+Each node in a k8s cluster has a set of cpu, memory, and disc resources available. Every pod consumes a set of resources. Whenever a pod s place on a node (by the scheduler), it consumes resources available to that node. if the node has not enough resources, the scheduler avoids placing a pod on that node instead, places the pod on one node where  sufficient resources are available. If there's no sufficient resources available on any on the nodes within the cluster, k8s holds back scheduling the pod. The pod will be in *pending* state and the pod events will show reason: $insufficient cpu*.
+
+By default, k8s assumes that a pod or container within a pod requires `0.5 cpu`, `256Mi of memory`. These are known as *resource requests* for a container (the minimum amount of cpu and memory requested by the container). We can specify custom values in our pod definition file. the cpu count can be any value as low as `0.1` or `100m` (m for milli). On count of cpu is equivalent of 1 aws vcpu, 1 gcp core, 1 azure core or 1 hyperthread. Similarly with memory, we can specify `M or Mi` or `G or Gi`.
+
+In a docker world, a container has no limit to the resources it can consume on a node. However, we can set a limit for the resource usage of a pod in k8s by adding a limit section under the resource section in the pod definition file. Requests and limits are set for each container within a pod. When a pod try to exceed the resource limit of cpu , k8s throttles the cpu so that it doesn't go beyond the specified limit. The container cannot use more cpu resources than its limit. However, this is not the case with the memory; a container can use more memory resource than its limit. If a pod tries to use more memory than its limit constantly, the pod will be terminated.
+
+```yaml
+# pod-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: [pod-name]
+  labels:
+    [label-key]: [label-value]
+spec:
+  containers:
+    - name: [container-name]
+      image: [container-image]
+      reqources:
+        requests:
+          cpu: [cpu-request] 
+          memory: [memory-request]
+        limits:
+          cpu: [cpu-limit]
+          memory: [memory-limit]
+ ```
+ </p>
+</details>

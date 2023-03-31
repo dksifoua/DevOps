@@ -278,6 +278,7 @@ The concept of taints and tolerations are used to set restrictions on what pods 
 
 ```
 $ kubectl taint nodes [node-name] [key-taint]=[value-taint]:[taint-effect]
+$ kubectl taint nodes [node-name] [key-taint]- # Remove taint on node with label key [key-taint]
 $ kubectl describe node [node-name] | grep Taint
 ```
 
@@ -310,6 +311,9 @@ To summary, taints & tolerations do not tell the pod to go to a particular node.
 </details>
 
 ## Node Selectors & Node Affinity
+
+<details><summary>show</summary>
+<p>
 
 Node selectors & Node Affinity are used to set a limitation on a pod so that it only runs on particular nodes. They are two ways to achieve this.
 
@@ -371,3 +375,5 @@ The type of node affinity defines the behavior of the scheduler with respect to 
 - `requiredDuringSchedulingRequiredDuringExecution`
   - requiredDuringScheduling: The pod won't be scheduled if there's not any node with affinity rules.
   - requiredDuringExecution: Any pod that is running on nodes that doesn't meet affinity rules will be terminated.
+</p>
+</details>

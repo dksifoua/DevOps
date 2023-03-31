@@ -305,6 +305,69 @@ spec:
       effect: "[taint-effect]"
 ```
 
-To summary, taints & tolerations do not tell the pod to go to a particular node. Instead it tells the node to only accept pods with certain tolerations. If the requirements is to restrict a pod to certain nodes, it is achieved through another concept called as node affinity.
+To summary, taints & tolerations do not tell the pod to go to a particular node. Instead it tells the node to only accept pods with certain tolerations. If the requirements is to restrict a pod to certain nodes, it is achieved through another concept called as node selectors & affinity.
 </p>
 </details>
+
+## Node Selectors & Node Affinity
+
+Node selectors & Node Affinity are used to set a limitation on a pod so that it only runs on particular nodes. They are two ways to achieve this.
+
+**Node Selectors**
+
+```
+$ kubectl label node [node-name] [node-label-key]=[node-label-value]
+```
+
+```yaml
+# pod-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: [pod-name]
+  labels:
+    [label-key]: [label-value]
+spec:
+  containers:
+    - name: [container-name]
+      image: [container-image]
+  nodeSelector:
+    [node-label-key]: [node-label-value]
+```
+
+This is the simple and easier method. It serves our purpose, but has some limitations. We used a single label and selector to achieve our goal here. But what if our requirements are much more complex. For example, we would like to say something like *place the pod on a large or medium labeled node" or "place the pod on any node that is not small*. We cannot achieve this using node selectors. For this node affinity and anti-affinity featrures are the way to go.
+
+**Node Afffinity**
+
+```yaml
+# pod-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: [pod-name]
+  labels:
+    [label-key]: [label-value]
+spec:
+  containers:
+    - name: [container-name]
+      image: [container-image]
+  affinity:
+    nodeAffinity:
+      [type-of-node-affinity]:
+        nodeSelectorTerms:
+          - key: [node-label-key]
+            operator: [operator] # In | NotIn | Exists (no need values)
+            values:
+              - [node-label-value]
+```
+
+The type of node affinity defines the behavior of the scheduler with respect to node affinity and the stages in the lifecycle of the pod. There are currently three types of node affinity available:
+- `requiredDuringSchedulingIgnoredDuringExecution`:
+  - requiredDuringScheduling: The pod won't be scheduled if there's not any node with affinity rules.
+  - ignoredDuringExecution: Pods will continue to run and any changes in node affinity won't impact them.
+- `preferredDuringSchedulingIgnoredDuringExecution`:
+  - preferredDuringScheduling: If there's not any node with affinity rules, the scheduler will place the pod on any available node.
+  - ignoredDuringExecution: Pods will continue to run and any changes in node affinity won't impact them.
+- `requiredDuringSchedulingRequiredDuringExecution`
+  - requiredDuringScheduling: The pod won't be scheduled if there's not any node with affinity rules.
+  - requiredDuringExecution: Any pod that is running on nodes that doesn't meet affinity rules will be terminated.

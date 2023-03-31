@@ -268,3 +268,43 @@ spec:
 ```
 </p>
 </details>
+
+
+## Taints & Tolerations
+
+<details><summary>show</summary>
+<p>
+The concept of taints and tolerations are used to set restrictions on what pods can ba schedule on a node. To prevent pods to be place on a node, we place a taint on that node. By default, pod have no tolerations wich means unless specified otherwise, none of the pods in the k8s cluster can tolerate any taint. If we want to enable certain pods to be place on a tainted node, we must have a toleration to theses pods. The scheduler will schedule pods with respect to node taints and pods tolerations. By default, k8s apply a taint to the master node. This is why the scheduler never place a pod on the master node. This is just a best practice that can be modified.
+
+```
+$ kubectl taint nodes [node-name] [key-taint]=[value-taint]:[taint-effect]
+$ kubectl describe node [node-name] | grep Taint
+```
+
+The taint effect defines what would happen to the pods if they do not tolerate the taint. There're three taint effects:
+- `NoSchedule`: The pod won't be scheduled on the node.
+- `PreferNoSchedule`: The scheduler will try to avoid placing a pod on the node with no guarantee.
+- `NoExecute`: New pods won't be scheduled on the node and existing pods on the node if any, will be evicted if the do not tolerate the taint. These pods may have be scheduled on the node before the taint was applied to node.
+
+```yaml
+# pod-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: [pod-name]
+  labels:
+    [label-key]: [label-value]
+spec:
+  containers:
+    - name: [container-name]
+      image: [container-image]
+  tolerations:
+    - key: "[key-taint]"
+      operator: "Equal"
+      value: "[value-taint]"
+      effect: "[taint-effect]"
+```
+
+To summary, taints & tolerations do not tell the pod to go to a particular node. Instead it tells the node to only accept pods with certain tolerations. If the requirements is to restrict a pod to certain nodes, it is achieved through another concept called as node affinity.
+</p>
+</details>

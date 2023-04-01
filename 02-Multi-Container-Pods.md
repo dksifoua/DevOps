@@ -33,3 +33,31 @@ spec:
     - name: [container-name-2]
       image: [container-image-2]
 ```
+
+## Init Containers
+
+In a multi-container pod, each container is expected to run a process that stays alive as long as the POD's lifecycle. For example in the multi-container pod that has a web application and logging agent, both the containers are expected to stay alive at all times. The process running in the log agent container is expected to stay alive as long as the web application is running. If any of them fails, the POD restarts.
+
+But at times we may want to run a process that runs to completion in a container. For example a process that pulls a code or binary from a repository that will be used by the main web application. That is a task that will be run only one time when the pod is first created. Or a process that waits for an external service or database to be up before the actual application starts. That's where initContainers comes in. When a POD is first created the initContainer is launch, and the process in the initContainer must run to a completion before the real container hosting the application starts.
+
+We can configure multiple such initContainers as well. In that case each init container is launch one at a time in sequential order. If any of the initContainers fail to complete, k8s restarts the pod repeatedly until the Init Container succeeds.
+
+```yaml
+# pod-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: [pod-name]
+  labels:
+    [label-key]: [label-value]
+spec:
+  initContainers:
+    - name: [init-container-name-1]
+      image: [init-container-image-1]
+    - name: [init-container-name-2]
+      image: [init-container-image-2]
+  containers:
+    - name: [container-name]
+      image: [container-image]
+```
+

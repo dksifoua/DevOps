@@ -22,18 +22,54 @@ spec:
   containers:
     - name: [container-name]
       image: [container-image]
-  readinessProbe:
-    initialDelaySeconds: [initial-delay-seconds] # (optional) Give the application enough time to warm up before testing the its readiness
-    periodSeconds: [period-seconds] # (optional) How often to test the application readiness
-    failureThreshold: [failure-threshold] # By default, if the app is no ready after 03 attempts, the probe will stop. Use this to make more attempts
-    # Can be one of the three
-    httpGet:
-      path: [http-path]
-      port: [http-port]
-    tcpSocket:
-      port: [tcp-port]
-    exec:
-      command:
-        - [cmd]
-        - [args]
+      readinessProbe:
+        initialDelaySeconds: [initial-delay-seconds] # (optional) Give the application enough time to warm up before testing the its readiness
+        periodSeconds: [period-seconds] # (optional) How often to test the application readiness
+        failureThreshold: [failure-threshold] # By default, if the app is no ready after 03 attempts, the probe will stop. Use this to make more attempts
+        # Can be one of the three
+        httpGet:
+          path: [http-path]
+          port: [http-port]
+        tcpSocket:
+          port: [tcp-port]
+        grpc:
+          port: [grpc-port]
+        exec:
+          command:
+            - [cmd]
+            - [args]
+```
+
+## Liveness Probes
+
+Let's say while the pod is running, for some reasons, the application crashes and the pod continues to stay alive (for eg, the app may stuck in an infinite loop due to bug). As far as k8s is concerned, the container is up and running so the application is assumed to be up. But the users hitting the container are not served. In that case, the container need to be restarted or destroyed and a new container is to be brought up. That is where the liveness probe can help us. A liveness probe can be configured on the container to periodically test whether the application within the container is actually healthy. if the test fails, the container is considered unhealthy and is destroyed and recreated. But again, as a developer we get to define what it means for the application to be healthy. It can be an http test, tcp test or command execution test.
+
+```yaml
+# pod-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: [pod-name]
+  labels:
+    [label-key]: [label-value]
+spec:
+  containers:
+    - name: [container-name]
+      image: [container-image]
+      livenessProbe:
+        initialDelaySeconds: [initial-delay-seconds] # (optional) Give the application enough time to warm up before testing the its readiness
+        periodSeconds: [period-seconds] # (optional) How often to test the application readiness
+        failureThreshold: [failure-threshold] # By default, if the app is no ready after 03 attempts, the probe will stop. Use this to make more attempts
+        # Can be one of the three
+        httpGet:
+          path: [http-path]
+          port: [http-port]
+        tcpSocket:
+          port: [tcp-port]
+        grpc:
+          port: [grpc-port]
+        exec:
+          command:
+            - [cmd]
+            - [args]
 ```

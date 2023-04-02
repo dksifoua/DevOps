@@ -73,3 +73,10 @@ spec:
             - [cmd]
             - [args]
 ```
+
+## Container Logging
+
+```
+$ kubectl logs [pod-name] [container-name]
+$ kubectl logs -f [pod-name] [container-name] # To stream logs
+```

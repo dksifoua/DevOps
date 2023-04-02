@@ -80,3 +80,17 @@ spec:
 $ kubectl logs [pod-name] [container-name]
 $ kubectl logs -f [pod-name] [container-name] # To stream logs
 ```
+
+# Monitoring & Debug Applications
+
+We'd like to know node level metrics such as the number of node in the k8s cluster, how many of them are healthy, as well performance metrics such as cpu, memory, network, and disc utilization; as well as pod level metrics such as the number of pods and the performance metrics of each pod such as the cpu and memory consumption of them. So we need a solution that will monitor these metrics, store them and provide analytics around these data. K8s does not come with a full featured built-in solution. However, there are a number open source solutions available today such as Metric Server (In memory), Prometheus, The Elastic Stack and proprietary solutions like datadog and dynatrace.
+
+K8s runs an agent on node, known as the Kubelet which is responsible for receiving instructions from the k8s api master server and running pods on the nodes. The kubelet also contains a sub component known as the cAdvisor or Container Advisor. CAdvisor is responsible for retrieving performance metrics from pods and exposing them through the kubelet api to make metrics available for the monitoring solution.
+
+```
+# For Metrics Server only
+$ minikube addons enable metrics-server
+$ kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml # For other than minikube
+$ kubectl top node # cluster performance metrics
+$ kubectl top pod # Pods performance metrics
+```

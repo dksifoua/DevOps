@@ -63,3 +63,59 @@ $ kubectl rollout history deployment [deployment-name]
 ```
 
 ## Jobs & CronJobs
+
+There are different types of workloads that a container can serve like web server, application server or database. These workloads are meant to continue to run for a long period period of time until manually taken down. There are other kind of workloads such as batch processing, analytics or reporting that are meant to carry out a  specific task and then finish. For example, performing a computation, processing and image, performing some kind of analytics on a large dataset, generating a report and sending an email, etc. These are workloads that are meant to live for a short period of time, perform a set of tasks and then finish.
+
+With pods, after the container executed the task, it exits. But it will be recreated again and again until a thresold is reached. K8s want the application to live forever. That is the default behavior of pods (`restartPolicy: Always`). We can override that property by setting its to `Never` or `OnFailure`. That way, k8s does not restart the container one the job is finished. That works just fine.
+
+Now let's say we have a new use case for batch processing where we have large datasets that required multiple pods to process the data in parallel. We want to make sure that all pods perform the task assigned to them successfully and then exit. So we need a manager that can create as many pods as we want to get the work done and ensure that work gets done succesfully. While replicasets is used to make sure a specified number of pods are running at all times, a job is used to run a set of pods to perform a given task to completion.
+
+```yaml
+# job-definition.yaml
+apiVersion: apps/v1
+kind: Job
+metadata:
+  name: [job-name]
+spec:
+  completions: [number-of-pods] # Pods are created one by one
+  parallelism: [number-of-pods] # Pods are created in parallel
+  template:
+      spec:
+        containers:
+          - name: [container-name]
+            image: [container-image]
+        restartPolicy: [restart-policy]
+```
+
+```
+$ kubectl create -f job-definition.yaml
+$ kubectl delete job [job-name]
+```
+
+A cron job is a job that can be scheduled just like cron tab in linux. 
+
+```yaml
+# cronjob-definition.yaml
+apiVersion: apps/v1
+kind: CronJob
+metadata:
+  name: [job-name]
+spec:
+  schedule: [cron schedule]
+  jobTemplate:
+    spec:
+      completions: [number-of-pods] # Pods are created one by one
+      parallelism: [number-of-pods] # Pods are created in parallel
+      template:
+          spec:
+            containers:
+              - name: [container-name]
+                image: [container-image]
+            restartPolicy: [restart-policy]
+```
+
+```
+$ kubectl create -f cronjob-definition.yaml
+$ kubectl get cronjob
+$ kubectl delete cronjob [cronjob-name]
+```

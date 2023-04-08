@@ -78,6 +78,129 @@ That where **ingress** comes in. Ingress helps users access our application usin
 
 ### Ingress Controllers
 
+Ingress controllers are solutions deployed to applu configurations. K8s doesn't come with ingress controller by default. So we must delploy one.There are number of soluttions available for ingress like gce (supported and maintain by the k8s project), nginx (supported and maintain by the k8s project), istio, contour, haproxy, taefik.
+
+These ingress controllers are not just another load balancer. The load balancer components are just a part of it. Ingress controllers have additional intelligence built into them to monitor the k8s cluster for new definitions or ingress resources and configure the nginx server accordingly. An nginx controller is deployed as just another deployment in k8s.
+
+```yaml
+# nginx-controller-definition-file.yaml
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: nginx-ingress-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: nginx-ingress
+  template:
+    metadata:
+      labels:
+        name: nginx-ingress
+    spec:
+      containers:
+        - name: nginx-ingress-controller
+          image: quay.io/kubernetes-ingress-controller/nginx-ingress-controller:0.21.0
+          args:
+            - /nginx-ingress-controller # The nginx progra is stored here
+            - --configmap=$(POD_NAMESPACE)/nginx-configuration # For nginx configurations
+          envs:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - name: http
+              containerPort: 80
+            - name: https
+              containerPort: 443
+```
+
+```yaml
+# nginx-configmap-definition-file.yaml
+apiVersion: v1
+kind: Configmap
+metadata:
+  name: nginx-configuration
+```
+
+```yaml
+# nginx-service-definition-file.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-inngress
+spec:
+  type: NodePort
+  selector:
+    name: nginx-ingress
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+    - port: 443
+      targetPort: 443
+      protocol: TCP
+      name: https
+```
+
+```yaml
+# nginx-service-account-definition-file.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: nginx-inngress-service-account
+spec:
+  type: NodePort
+  selector:
+    name: nginx-ingress
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+    - port: 443
+      targetPort: 443
+      protocol: TCP
+      name: https
+```
+
 ### Ingress Resources
+
+Ingress Resources are set of rules & configurations applied to on the ingress controller.
+
+```yaml
+# ingress-definition-file.yaml - route all traffic to a service
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: [ingress-name]
+spec:
+  backend:
+    serviceName: [service-name]
+    servicePort: [service-port]
+```
+
+```yaml
+# ingress-definition-file.yaml - route all traffic based on rules
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: [ingress-name]
+spec:
+  rules:
+  - host: [host] # wear.my-online-store.com or use path
+    http:
+    paths:
+      - path: [path] # my-online-store.com/wear or use host
+        backend:
+          serviceName: [service-name]
+          servicePort: [service-port]
+```
 
 ## Network Policies

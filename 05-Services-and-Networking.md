@@ -204,3 +204,42 @@ spec:
 ```
 
 ## Network Policies
+
+A network policy is another object in k8s linked to one or more pods where we can define policy rules.
+
+```yaml
+# network-policy-definition-file.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: [network-policy-name]
+spec:
+  podSelector:
+    matchLabels:
+      [pod-label-key]: [pod-label-value]
+  policyTypes:
+    - [policy-type] # Ingres or Egress
+  Egress:
+    - to:
+      - podSelector:
+          matchLabels:
+            [destination-pod-label-key]: [destination-pod-label-value]
+      <-> namespaceSelector: # With a dash (-), it means OR. Without, it means AND
+          matchLabels:
+            name: [destination-pod-namespace]
+        ipBlock:
+          cidr: [cidr] # eg. 192.168.0.1/32
+      ports:
+        - protocol: [protocol]
+          port: [port]
+  Ingress: # Add this if it's present in policyTypes
+    - from
+      - podSelector:
+          matchLabels:
+            [origin-pod-label-key]: [origin-pod-label-value]
+      ports:
+        - protocol: [protocol]
+          port: [port]
+```
+
+**Note:** Network policies are enforced by the network solution implemented on the k8s cluster, and not all network solutions support network policies. A few of them that are supported are Cube Router, Calico, Romana and Weave-net. Flannel doesn't support (enforce) network policies.

@@ -35,10 +35,10 @@ A persistent volume is a cluster wide pool of volumes configured by and administ
 
 ```yaml
 # persistent-volume-definition.yaml
-apiVersion: PersistentVolume
-kind: Pod
+apiVersion: v1
+kind: PersistentVolume
 metadata:
-  name: [pod-name]
+  name: [persistent-volume-name]
   labels:
     [label-key]: [label-value]
 spec:
@@ -46,6 +46,7 @@ spec:
     - [access-mode] # ReadonlyMany | ReadWriteOne | ReadWriteMany
   capacity:
     storage: [storage-amount] # eg. 1Gi
+  persistentVolumeReclaimPolicy: [persistent-volume-reclaim-policy] # What happen when the pvc is delete? Retain (default - the pv is not delete) | Delete (the pv is delete) | Recycle (only the data in pv is deleted)
   hostPath: # Not recommend in a production environment
     path: [host-path]
   awsElasticBlockStore: # Alternative
@@ -59,6 +60,53 @@ $ kubectl get persistentvolume
 ```
 
 ## Persistant Volume Claims
+
+One persistent volume claims are created, k8s binds the persitent volumes to claims based on the requests and properties set on the volumes. Every pvc is bound to a single pv. During the binding process, k8s tries to find a persistent volume that has sufficient capacity as requested by the claim and any other request properties such as access modes, volumes modes, storage classes, etc. However, if there're multiple possible matches for a single claim, and we would like to specifically use a particular one, we could still use labels and selectors to bind to the right volumes. Finally, a smaller claim may get bound to a larger volume if all the other criterias matches and there are no better options. No other claim can utilize the remaining capacity.
+
+If there is no volume available, the pvc will remain in a pending state until newer volumes are made available to the cluster. Once newer volumes are available,  the claim would automatically be bound to the newly available volume.
+
+```yaml
+# persistent-volume-claim-definition.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: [persistent-volume-claim-name]
+  labels:
+    [label-key]: [label-value]
+spec:
+  accessmodes:
+    - [access-mode] # ReadonlyMany | ReadWriteOne | ReadWriteMany
+  resources:
+    requests:
+      storage: [storage-request] # eg. 500Mi
+```
+
+```shell
+$ kubectl create -f persistent-volume-claim-definition.yaml
+$ kubectl get persistentvolumeclaim
+$ kubectl delete persistentvolumeclaim [persistent-volume-claim-name]
+```
+
+```yaml
+# pod-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: [pod-name]
+  labels:
+    [label-key]: [label-value]
+spec:
+  containers:
+    - name: [container-name]
+      image: [container-image]
+      volumeMounts:
+        - name: [volume-name]
+          mountPath: [container-path]
+  volumes:
+    - name: [volume-name]
+      persistentVolumeClaim:
+        claimName: [persistent-volume-claim-name]
+```
 
 ## Storage Classes
 

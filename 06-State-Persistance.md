@@ -110,6 +110,40 @@ spec:
 
 ## Storage Classes
 
+Before a pv is created, we must have created the storage. Every time an application requires storage, we have to first manually provision the disk before create the pv using the same name as that of created disk. That's called static provisioning volumes. It would've been nice if the volume gets provisionned automatically when required. That's where storage classes come in.
+
+With storage classes, we can define a provisioner such as google storage than can automatically provision storage on google cloud and attach that to pods when a claim is made. That's called dynamic provisioning of volumes.
+
+```yaml
+# storage-class-definition.yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: [storage-class-name]
+provisioner: [provisioner] # eg. for google storage: kubernetes.io/gce-pd
+parameters: # optional -very specific to the provisioner we are using
+```
+
+Now we have a storage class, we no longer need (to manually create) a pv because the pv and any associated storage is going to be automatically created when the storage class is created. The pvc becomes:
+
+```yaml
+# persistent-volume-claim-definition.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: [persistent-volume-claim-name]
+  labels:
+    [label-key]: [label-value]
+spec:
+storageClassName: [storage-class-name]
+  accessmodes:
+    - [access-mode] # ReadonlyMany | ReadWriteOne | ReadWriteMany
+  resources:
+    requests:
+      storage: [storage-request] # eg. 500Mi
+```
+
+
 ## Stateful Sets
 
 ## Headless Services

@@ -359,10 +359,11 @@ spec:
     nodeAffinity:
       [type-of-node-affinity]:
         nodeSelectorTerms:
-          - key: [node-label-key]
-            operator: [operator] # In | NotIn | Exists (no need values)
-            values:
-              - [node-label-value]
+          - matchExpressions:
+            - key: [node-label-key]
+              operator: [operator] # In | NotIn | Exists (no need values)
+              values:
+                - [node-label-value]
 ```
 
 The type of node affinity defines the behavior of the scheduler with respect to node affinity and the stages in the lifecycle of the pod. There are currently three types of node affinity available:

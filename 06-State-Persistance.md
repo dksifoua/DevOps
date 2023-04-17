@@ -216,3 +216,44 @@ spec:
 ```
 
 When we used that fields in deployment (subdomain and hostname), all pod within the deployment get the same name. With stateful sets, we do not need to specify a subdomain or a hostname. The stateful set automatically assigns the right hostname for each pod, based on the pod name and it automatically assigns the right subdomain based on the headless service name.
+
+## Volume Claim Templates
+
+If we want a different storage for each pod in our stateful set, we need to use a volume claim template instead of a pvc. A pvc will be automatically created for each pod based on the volume claim template.
+
+```yaml
+# deployemnt-definition.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: [deployemnt-name]
+  labels:
+    [deployemnt-label-key]: [deployemnt-label-value]
+spec:
+  replicas: [number-of-replicas]
+  selector:
+    matchLabels:
+      [pod-label-key]: [pod-label-value]
+  template:
+      metadata:
+        name: [pod-name]
+        labels:
+          [pod-label-key]: [pod-label-value]
+      spec:
+        containers:
+          - name: [container-name]
+            image: [container-image]
+            volumeMounts:
+              - name: [volume-name]
+                mountPath: [container-path]
+  volumeClaimTemplates:
+    - metadata:
+        name: [persistent-volume-claim-name]
+      spec:
+      storageClassName: [storage-class-name]
+        accessmodes:
+          - [access-mode] # ReadonlyMany | ReadWriteOne | ReadWriteMany
+        resources:
+          requests:
+            storage: [storage-request] # eg. 500Mi
+```

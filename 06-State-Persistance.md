@@ -143,7 +143,76 @@ storageClassName: [storage-class-name]
       storage: [storage-request] # eg. 500Mi
 ```
 
-
 ## Stateful Sets
 
+We are tasked to deploy a db server. We install and set up mysql on a server and create a db. To withstand failures, we are tasked to deploy a high availability solution. So we deploy additional servers and install mysql on those as well. We have a blank db on the new servers. To replicate data from the initial server into the new server, we can set up a master slave architecture where all writes are done on the master node and reads are done on the slave nodes. To set up this architecture, we have to set up the master node first, then set up the first slave node, copy the data from the master node into the slave node and enable continuous replication from the master. To add more slave nodes, repeat the process but instead of copying the data from the master node, we copy the data from a set up slave node and enable continuous replication from the master node. 
+
+With the scenario above, there is an order that we follow in order the set up the architecture. That order cannot be guaranteed with k8s deployment since the pods in a deployment come up at the same time. Another problem with implementing this architecture using deployment is the need to differentiate the master and slaves in order to copy data and enable continuous replication. That is something we cannot do with pods in a deployment because pod ip addresses are dynamically assigned and may change when the pods get recreated. So we definitely need a static hostname. But again, the pods in a deplyment come up with random names that may change when the pods get recreated. So that won't help us here. So the architecture above cannot be implemented with deployments. That's where stateful sets come in.
+
+Stateful sets are similar to deployment sets as they create pods based on a template, they can scale up and down, they can perform rolling updates and rollbacks, but there are some differences. With stateful sets, pods are created in a sequential order. After the firs pod is deployed, it must be in a running and ready state before the next pod is deployed. So that helps us ensure that the master  is deplyed first and then slave 1 and the slave 2. Stateful sets also assigns a unique original index to each pod, a number starting from 0 for the first pod and increments by one. Each pod gets a unique name derived from this index combined the stateful set name. Stateful sets maintain a sticky identity for each of their pods.
+
+```yaml
+# statefulset-definition.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: [statefulset-name]
+  labels:
+    [statefulset-label-key]: [statefulset-label-value]
+spec:
+  serviceName: [headless-service-name]
+  podManagementPolicy: Parallel # optional - if we don't a stack order for the statefulset lifecycle
+  replicas: [number-of-replicas]
+  selector:
+    matchLabels:
+      [pod-label-key]: [pod-label-value]
+  template:
+      metadata:
+        name: [pod-name]
+        labels:
+          [pod-label-key]: [pod-label-value]
+      spec:
+        containers:
+          - name: [container-name]
+            image: [container-image]
+```
+
 ## Headless Services
+
+In our master slave architure, we said that we wanted to point all the writes requests to the master node and the reads on the slave node. To balance the read traffic, we can use a k8s service (node port or load balancer). For the write traffic we use a headless service.
+
+A headless service is created like a normal service, but it does not have an ip on its own like a cluste ip. It does not perform any load balancing. All it does is create dns entries for each pod using the pod name and a subdomain. Each pod in a stateful set get dns like [pod-name].[headless-service-name].[namespace].svc.cluster.local
+
+```yaml
+# headless-service-definition.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: [headless-service-name]
+spec:
+  clusterIP: None
+  ports:
+    - port: [port]
+  selectors:
+    [pod-label-key]: [pod-label-value]
+```
+
+When a headless service is created, the dns entries are created for pods only of the two conditions are met:
+
+```yaml
+# pod-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: [pod-name]
+  labels:
+    [label-key]: [label-value]
+spec:
+  subdomain: [headless-service-name] # first condition
+  hostname: [hostname] # second condition
+  containers:
+    - name: [container-name]
+      image: [container-image]
+```
+
+When we used that fields in deployment (subdomain and hostname), all pod within the deployment get the same name. With stateful sets, we do not need to specify a subdomain or a hostname. The stateful set automatically assigns the right hostname for each pod, based on the pod name and it automatically assigns the right subdomain based on the headless service name.

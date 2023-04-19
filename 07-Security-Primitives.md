@@ -19,3 +19,63 @@ As we've seen alrealdy, the kube api server is at the centre of all operations w
 All communication with the cluster between the various component such as the ectd cluste, the kube controller manager, the scheduler, the api server, as well as those running on the worker nodes such as the kubelet and the kube proxy is secured using tls encryption
 
 For communication between application within the cluster, by default all ports can access all other ports within the cluster. We can restrict access between them using network policies.
+
+## Authentication
+
+The k8s cluster consists on multiple physical or virtual nodes and various components that work together. We have users like administrators that access the cluster to perform administrative tasks, the developers that access the cluster to test or deploy their applications, end users who access applications deployed on the cluster, and we have third-party applications accessing the cluster for integration purposes.
+
+The security of end users who access the applications deployed on the cluster is managed by the applications themselves internally. So our focus is on user's accessing the cluster: User (administrators or developers) & Service Account (machines or robots).
+
+K8s doesn't manage user accounts natively. It relies on an external source like a file with user details or certificates or third party identity services like LDAP to manage theses users. So we cannot create user in a k8s cluster or view the list of users. However, in case of service accounts, k8s can manage them.
+
+So let's focus on users.
+
+All user access is managed by the api server. Whether the request comes from the kubectl tool or the api directly. All of these requests go through the kube api server which authenticates the requests before processing them. There are different authentication mechanisms that can be configured:
+
+**Auth mechanism - Basic**
+
+We create a list of users and passwords in a csv file and use that as the source for user information. The file has three columns: password, username and user id with an optional fouth column for groups. We then pass the filename as an option to the kube api server. We then add that file to kube api server definition file.
+
+````yaml
+# kube-apiserver-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kube-apiserver
+  namespace: kube-system
+spec:
+  containers:
+  - command:
+    - kube-apiserver
+    - ...
+    - --basic-auth-file=[basic-csv-file-path]
+...
+```
+
+The kube api server will automatically restart after we apply modifications on its definition file.
+
+To authenticate using the basic credentials while accessing the api server:
+
+`$ curl -v -k https://[master-node-ip]:[port]/api/v1/pods -u "[user]=[password]"`
+
+Instead of a static password file, we can use a static token file. We just replace the passwords by the tokens.
+
+````yaml
+# kube-apiserver-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kube-apiserver
+  namespace: kube-system
+spec:
+  containers:
+  - command:
+    - kube-apiserver
+    - ...
+    - --token-auth-file=[token-csv-file-path]
+...
+```
+
+`$ curl -v -k https://[master-node-ip]:[port]/api/v1/pods --header "Authorization: Bearer [token]"`
+
+**Notes**: The basic and token authentications are not recommended as they are insecure

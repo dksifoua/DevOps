@@ -36,7 +36,7 @@ All user access is managed by the api server. Whether the request comes from the
 
 We create a list of users and passwords in a csv file and use that as the source for user information. The file has three columns: password, username and user id with an optional fouth column for groups. We then pass the filename as an option to the kube api server. We then add that file to kube api server definition file.
 
-````yaml
+```yaml
 # kube-apiserver-definition.yaml
 apiVersion: v1
 kind: Pod
@@ -60,7 +60,7 @@ To authenticate using the basic credentials while accessing the api server:
 
 Instead of a static password file, we can use a static token file. We just replace the passwords by the tokens.
 
-````yaml
+```yaml
 # kube-apiserver-definition.yaml
 apiVersion: v1
 kind: Pod

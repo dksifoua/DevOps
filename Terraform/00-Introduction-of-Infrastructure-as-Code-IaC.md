@@ -1,5 +1,7 @@
 # Introduction of Infrastructure as Code - IaC
 
+## Challenges with traditional IT infrastructure
+
 Let's consider an organization that wants to configure a new application. The business comes up with the requirements
 for the new application. The business analyst then gathers the needs from the business, analyses them, and convert them
 into a set of high level technical requirements. These are then pass to a solution architect/technical lead that designs
@@ -47,3 +49,83 @@ So different organizations started solving these challenges within themselves by
 (Shell, Python, Ruby, Perl, Powershell). Everyone was solving the same problems, trying to automate infra provisioning, 
 to deploy environments faster and in a consistent fashion by leveraging the api functionalities of the various cloud 
 environments. These evolved into a set of tools that came to be known as **Infrastructure as Code - IaC**.
+
+## Infrastructure as Code
+
+The better way to provision cloud infra is to codify the entire provisioning process. This way, we can write and execute
+ code to define, provision, configure updates, and eventually destroy infra resources. This called **IaC**. With iac, we
+ can manage nearly any infra component as code such as databases, networks, storages, or even application configuration.
+
+```shell
+# ec2.sh
+
+#!/bin/bash
+IP_ADDRESS="10.2.2.1"
+
+EC2_INSTANCE=$(ec2-run-instances --instance-type t2.micro ami-0edab43b6fa892279)
+INSTANCE=$(echo ${EC2_INSTANCE} | sed 's/*INSTANCE //' | sed 's/ .*//')
+
+# Wait for instance to be ready
+while ! ec2-describe-instances $INSTANCE | grep -q
+"running"
+do
+  echo Waiting for $INSTANCE is to be ready...
+done
+
+# Check if instance is not provisioned and exit
+if [ ! $(ec2-describe-instances $INSTANCE | grep -q "running") ]; then
+  echo Instance $INSTANCE is stopped.
+  exit
+fi
+
+ec2-associate-address $IP_ADDRESS -i $INSTANCE
+
+echo Instance $INSTANCE was created successfully!!!
+```
+
+The code above is a shell script. However, it is not easy to manage it. It requires programming or development skills to
+ build and maintain. There's a lot of logic that needed to be coded, and it is not easily reusable. And that's where 
+tools like **Terraform** and **Ansible** help that code that is easy to learn, human-readable and maintain a large 
+script can now be converted into a simple terraform configuration.
+
+```terraform
+# main.tf - Terraform
+resource "aws_instance" "webserver" {
+ ami = "ami-0edab43b6fa892279"
+ instance_type = "t2.micro"
+}
+```
+
+```yaml
+# ec2.yaml - Ansible
+- amazon.aws.ec2:
+  key_name: my_key
+  instance_type: t2.micro
+  image: ami-123456
+  wait: yes
+  group: webserver
+  count: 3
+  vpc_subnet_id: subnet-29e63245
+  assign_public_ip: yes
+```
+
+Although terraform and ansible are both iac tools, they have some key differences in what they're trying to achieve. And
+ as result, they have some very different use cases.
+
+There are several different tools part of iac family: Ansible, Terraform, Puppet, CloudFormation, Packer, SaltStack, 
+Vagrant, Docker, etc. Although we can possibly use any of these tools to design similar solutions, they are all 
+been created to address a very specific goal. With that in mind, these can be broadly classified into three types:
+
+- **Configuration Management:** Ansible, Puppet & SaltStack.
+  - Install and manage software on existing infra resources
+  - Maintain standard structure
+  - Version control
+  - Idempotent.
+- **Server Templating:** Docker, Parker, Vagrant
+  - Pre-installed software & dependencies
+  - Virtual machine or docker images
+  - immutable infra
+- **Infrastructure Provisioning:** Terraform, CloudFormation
+  - Deploy immutable infra resources
+  - Servers, databases, networks components, storages, etc.
+  - Multiple providers

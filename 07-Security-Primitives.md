@@ -165,3 +165,43 @@ There are different authorization mechanisms supported by k8s:
 There are two more authorization modes in addition to those above: **AlwaysAllow** (default) and **AlwaysDeny**.
 
 Those modes are configured using the authorization-mode on the kube apiserver: `--authorization-mode=Node,RBAC,WebHook`. When we have multiple modes configured, the request is authorized using each mode in the order it is specified. When a mode denies a request, it gets to the next mode. As soon as a mode approuves the request, no more checks are done and the user is granted permission.
+
+```yaml
+# role-definition-file.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: [role-name]
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["create", "list", "get"]
+    resourcesNames: ["resource-name-1", "resource-name-2"] # If we want to give access only to certain pods.
+...
+
+# role-bindings-definition-file.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: [role-binding-name]
+subjects:
+  - kind: User
+    name: [username]
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: [role-name]
+  apiGroup: rbac.authorization.k8s.io
+```
+
+
+```bash
+$ kubectl create -f role-definition-file.yaml
+$ kubectl create -f role-bindings-definition-file.yaml
+$ kubectl get roles
+$ kubectl get rolebindings
+$ kubectl describe role [role-name]
+$ kubectl describe role [role-binding-name]
+$ kubectl auth can-i [verb] [resource] <--namespace [namespace]> # Check if I as a user can perform a kubectl command
+$ kubectl auth can-i [verb] [resource] <--namespace [namespace]> --as [username] # Check for another user 
+```

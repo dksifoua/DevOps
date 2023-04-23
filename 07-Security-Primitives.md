@@ -143,3 +143,14 @@ $ kubectl config view # view the config file
 $ kubectl config view --kubeconfig=[kubeconfig-filepath]
 $ kubectl config use-context [context-name] # Use a different context. This will edit the kubeconfig file
 ```
+
+## Authorization
+
+**API Groups**
+
+The k8s api is grouped into multiple groups based on their purpose. `/metrics`, `/healthz`, `/version`, `/api`, `/apis`, `/logs`. The version api is for viewing the version of the cluster. The metrics and healthz apis are used to monitor the health of the cluster. The logs are used for integrating with third party logging applications. The /apis and /api are responsible for the cluster functionalities.
+
+- **/api** The core group. It's where all core functionalities exist such as `v1/namespaces`, `v1/pods`, `v1/rc`, `v1/events`, `v1/endpoints`, `v1/nodes`, `v1/bindings`, `v1/pv`, `v1/pvc`, `configmaps`, `v1/secrets`, `v1/services`, etc. 
+- **/apis** The named group. This group is more organized. And going forward, all the newer features are going to be made available through these named groups. It has groups under it for `/apps`, `extensions`, `networking.k8s.io`, `storage.k8s.io`, `authentication.k8s.io`, `certificates.k8s.io`, etc. Under them there are resources that we can `list`, `get`, `create`, `delete`, `update`, `watch`. These are known as verbs.
+
+We can get all the api groups by just querying the k8s cluster like this: `$ curl https://[kube-apiserver]:[port] -k`

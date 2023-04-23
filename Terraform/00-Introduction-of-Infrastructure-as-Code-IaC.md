@@ -129,3 +129,62 @@ been created to address a very specific goal. With that in mind, these can be br
   - Deploy immutable infra resources
   - Servers, databases, networks components, storages, etc.
   - Multiple providers
+
+## Why Terraform?
+
+Terraform is a free and open source tool, which was developed by HashiCorp. It is installed as single binary, which can 
+be set up very quickly, allowing us to build, manage and destroy infra in a matter of minutes. One of the biggest 
+advantage of terraform is its ability to deploy infra across multiple platforms including private and public cloud, such
+ as on premise cluster and all cloud solutions. Terraform infra management on so many different kind of platforms is achieved through **providers**. Providers help 
+terraform to manage third party platforms through their apis.
+
+Terraform uses **HCL - HashiCorp Configuration Language** which is a simple declarative language to define the infra 
+resources to be provision as blocks of code. All infra resources can be defined within a config files that have a `.tf` 
+file extension. The config syntax is easy to read and write and pick up for a beginner. This sample code is used to 
+provision a new ec2 instance on the aws cloud.
+
+```terraform
+# main.tf
+resource "aws_instance" "webserver" {
+  ami = "ami-0edab43b6fa892279"
+  instance_type = "t2.micro"
+}
+
+resource "aws_s3_bucket" "finance" {
+  bucket = "finanace-21092020"
+  tags = {
+    Description = "Finance and Payroll"
+  }
+}
+
+resource "aws_iam_user" "admin-user" {
+  name = "lucy"
+  tags = {
+    Description = "Team Leader"
+  }
+}
+```
+
+This code is declarative and can be maintained in a vcs allowing it to be distributed to other teams. Declarative means 
+the state that we want our infra to be in. That's the desired state. The current state is initially empty. Terraform 
+will take care of what is required to go from the current state to the desired state without us having to worry about 
+how to get there. Terraform works in three phases: 
+- **init** where terraform initializes the project and identifies the providers to be used for the target environment.
+- **plan** where terraform draft the plan to get to the target state.
+- **apply** where terraform makes the necessary changes required on the target environment to bring it to the desired 
+state. If for some reason, the environment was to shift from desired state, then a subsequent terraform apply will bring
+ it back to the desired state by only fixing  the missing component.
+
+Every object that terraform manages is called a **resource**. Terraform manages the lifecycle of resources from its 
+provisioning to configuration to decommissioning. Terraform records the state (`terraform.tfstate`) of the infra as it 
+is seen in the real world, based on this, it can determine what actions to take when updating resources for a particular
+platform. Terraform can ensure that the entire infra is always in the defined state at all times. The state is a 
+blueprint of the infra deployed by terraform. Terraform can read attributes of existing infra components by configuring 
+data sources. This can lead to be used for configuring other resources within terraform. Terraform can also import other
+ resources outside terraform that where either create manually or the means of other iac tools and brings them under it 
+control so it can manage those resources going forward.
+
+Terraform Cloud and Terraform Enterprise provide additional features that allow simplified collaboration between teams 
+managing infra, improve security and centralized ui to manage terraform deployments.
+
+All these features make terraform an excellent enterprise grade infra provisioning tool.

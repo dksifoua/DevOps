@@ -79,3 +79,67 @@ spec:
 `$ curl -v -k https://[master-node-ip]:[port]/api/v1/pods --header "Authorization: Bearer [token]"`
 
 **Notes**: The basic and token authentications are not recommended as they are insecure
+
+**Kube Config**
+
+Let say a client wants to query a k8s api server using certificates. To do so, the client passes arguments with its request.
+
+```bash
+$ curl https://[kube-apiserver]:[port]/api/v1/pods \
+  --key [client-key].key
+  --cert [client-certificate].crt
+  --cacert [certificate-authority].crt
+```
+
+With the kubectl command, we can specify the same information using the option `server`, `client-key`, `client-certificate` and `certificate-authority`
+
+```bash
+$ kubectl get pods \
+  --server [kube-apiserver]:[port]
+  --client-key [client-key].key
+  --client-certificate [client-certificate].crt
+  --certificate-authority [certificate-authority].crt
+```
+
+Obviously, typing those in every time is a tedious task. So we move these information to a configuration file called as `kubeconfig` and then specify this file as the kube config option.
+
+`$ kubeclt get pods --kubeconfig [kubecconfig-file]`
+
+By default, the kubectl tool looks for a file named `.kube/config`. So if move configurations in that file, we don't have to specify the path to file explicitely in the kubectl command.
+
+The kubeconig file has three options: 
+
+- **clusters:** are the various k8s clusters that we need access to.
+- **Users:** are just the different users.
+- **Contexts:** define which user accounts will be used to access which cluster.
+
+
+```yaml
+# kubeconfig-definition file. We don't need to create any k8s object. The kubectl will read it
+apiVersion: v1
+kind: Config
+current-context: [context-name] # Default context to be use by kubectl
+clusters:
+  - name: [server-name]
+    cluster:
+      certificate-authority: [certificate-authority].crt
+      certificate-authority-data: [certificate-authority-content] # Alternative to certificate-authority field
+      server: [kube-apiserver]:[port]
+contexts:
+  - name: [context-name] # eg. [username]@[server-name]
+    context:
+      cluster: [server-name]
+      user: [username]
+      namespace: [namespace] # When switch to the context, we will auto get to the namespace
+users:
+  - name: [username]
+    user:
+      client-certificate: [client-certificate].crt
+      client-key: [client-key].key
+```
+
+```bash
+$ kubectl config view # view the config file
+$ kubectl config view --kubeconfig=[kubeconfig-filepath]
+$ kubectl config use-context [context-name] # Use a different context. This will edit the kubeconfig file
+```

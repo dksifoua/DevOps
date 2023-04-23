@@ -205,3 +205,8 @@ $ kubectl describe role [role-binding-name]
 $ kubectl auth can-i [verb] [resource] <--namespace [namespace]> # Check if I as a user can perform a kubectl command
 $ kubectl auth can-i [verb] [resource] <--namespace [namespace]> --as [username] # Check for another user 
 ```
+
+## Cluster Roles
+
+## Admission Controllers
+

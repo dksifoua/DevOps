@@ -144,8 +144,6 @@ $ kubectl config view --kubeconfig=[kubeconfig-filepath]
 $ kubectl config use-context [context-name] # Use a different context. This will edit the kubeconfig file
 ```
 
-## Authorization
-
 **API Groups**
 
 The k8s api is grouped into multiple groups based on their purpose. `/metrics`, `/healthz`, `/version`, `/api`, `/apis`, `/logs`. The version api is for viewing the version of the cluster. The metrics and healthz apis are used to monitor the health of the cluster. The logs are used for integrating with third party logging applications. The /apis and /api are responsible for the cluster functionalities.
@@ -154,3 +152,16 @@ The k8s api is grouped into multiple groups based on their purpose. `/metrics`, 
 - **/apis** The named group. This group is more organized. And going forward, all the newer features are going to be made available through these named groups. It has groups under it for `/apps`, `extensions`, `networking.k8s.io`, `storage.k8s.io`, `authentication.k8s.io`, `certificates.k8s.io`, etc. Under them there are resources that we can `list`, `get`, `create`, `delete`, `update`, `watch`. These are known as verbs.
 
 We can get all the api groups by just querying the k8s cluster like this: `$ curl https://[kube-apiserver]:[port] -k`
+
+## Authorization
+
+There are different authorization mechanisms supported by k8s:
+
+- **Node based authorization:** This is access from within the cluster
+- **Attributes based authorization - ABAC:** We associate a user or a group of users with a set of permissions. We do this by creating a policy file
+- **Roles based authorization - RBAC:** We define a role for each type of users (groups). RBAC provides a more standard approach to manage accesses within the k8s cluster. 
+- **Webhook authorization:** To outsource authorization mechanism.
+
+There are two more authorization modes in addition to those above: **AlwaysAllow** (default) and **AlwaysDeny**.
+
+Those modes are configured using the authorization-mode on the kube apiserver: `--authorization-mode=Node,RBAC,WebHook`. When we have multiple modes configured, the request is authorized using each mode in the order it is specified. When a mode denies a request, it gets to the next mode. As soon as a mode approuves the request, no more checks are done and the user is granted permission.

@@ -262,3 +262,34 @@ across all namespaces.
 
 ## Admission Controllers
 
+Admission controllers help us implement better security measures to enforce how a cluster is use. Apart from simply 
+validating configuration, admission controllers can do a lot more such as change the request itself, or perform 
+additional operations before the object get created.
+
+There are a number of admission controllers that come prebuilt with k8s:
+- `AlwayPullImage`: Ensures that every time a pod is created, the images are always pulled.
+- `DefaultStorageClass`: Observes the creation of pvc and automatically adds a default storage class to them if one is 
+not specified.
+- `EventRateLimit`: Sets a limit on the request with the api server can handle at a time, to prevent the api server from
+ flooding with requests.
+- `NamespaceExists`: Reject requests to namespaces that do not exist.
+- etc.
+
+To view enabled admission controllers, run then command: `$ kube-apiserver -h | grep enable-admission-plugins`
+
+To add a new admission controller, update the kube apiserver definition file
+
+```yaml
+# kube-apiserver-definition.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kube-apiserver
+  namespace: kube-system
+spec:
+  containers:
+  - command:
+    - kube-apiserver
+    - ...
+    - --enable-admission-plugins=[admission-controller-name],[admission-controller-name]
+```

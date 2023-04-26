@@ -1,8 +1,8 @@
-# Secutity Primitives
+# Security Primitives
 
 Of course, all access to the hosts that form a k8s cluster must be secured, root access disabled, password based authentication disabled, and only ssh key based authentication to be made available. And of course, any other measures we need to take to secure the physical or virtual infrastructure that host k8s. If that is compromised, everything is compromised. Our focus on this part is more on k8s related security. What are the risks and what measures do we need to take to secure the k8s cluster?
 
-As we've seen alrealdy, the kube api server is at the centre of all operations with k8s. We interact with it through the kubectl utility or by accessing the api directly. And through that we can perform almost any operation on the cluster. So that's the first line of defense. *Controlling access to the api-server itself*. We need to make two types of decisions:
+As we've seen already, the kube api server is at the centre of all operations with k8s. We interact with it through the kubectl utility or by accessing the api directly. And through that we can perform almost any operation on the cluster. So that's the first line of defense. *Controlling access to the api-server itself*. We need to make two types of decisions:
 
 - **Who can access the cluster?** It is defined by the **authentication** mechanism. There are different ways to authentication to the api server:
   - User ID and password stored in a static file
@@ -16,7 +16,7 @@ As we've seen alrealdy, the kube api server is at the centre of all operations w
   - Node Authorization
   - Webhook Mode
 
-All communication with the cluster between the various component such as the ectd cluste, the kube controller manager, the scheduler, the api server, as well as those running on the worker nodes such as the kubelet and the kube proxy is secured using tls encryption
+All communication with the cluster between the various component such as the etcd cluster, the kube controller manager, the scheduler, the api server, as well as those running on the worker nodes such as the kubelet and the kube proxy is secured using tls encryption
 
 For communication between application within the cluster, by default all ports can access all other ports within the cluster. We can restrict access between them using network policies.
 
@@ -26,7 +26,7 @@ The k8s cluster consists on multiple physical or virtual nodes and various compo
 
 The security of end users who access the applications deployed on the cluster is managed by the applications themselves internally. So our focus is on user's accessing the cluster: User (administrators or developers) & Service Account (machines or robots).
 
-K8s doesn't manage user accounts natively. It relies on an external source like a file with user details or certificates or third party identity services like LDAP to manage theses users. So we cannot create user in a k8s cluster or view the list of users. However, in case of service accounts, k8s can manage them.
+K8s doesn't manage user accounts natively. It relies on an external source like a file with user details or certificates or third party identity services like LDAP to manage these users. So we cannot create user in a k8s cluster or view the list of users. However, in case of service accounts, k8s can manage them.
 
 So let's focus on users.
 
@@ -34,7 +34,7 @@ All user access is managed by the api server. Whether the request comes from the
 
 **Auth mechanism - Basic**
 
-We create a list of users and passwords in a csv file and use that as the source for user information. The file has three columns: password, username and user id with an optional fouth column for groups. We then pass the filename as an option to the kube api server. We then add that file to kube api server definition file.
+We create a list of users and passwords in a csv file and use that as the source for user information. The file has three columns: password, username and user id with an optional fourth column for groups. We then pass the filename as an option to the kube api server. We then add that file to kube api server definition file.
 
 ```yaml
 # kube-apiserver-definition.yaml
@@ -105,7 +105,7 @@ Obviously, typing those in every time is a tedious task. So we move these inform
 
 `$ kubeclt get pods --kubeconfig [kubecconfig-file]`
 
-By default, the kubectl tool looks for a file named `.kube/config`. So if move configurations in that file, we don't have to specify the path to file explicitely in the kubectl command.
+By default, the kubectl tool looks for a file named `.kube/config`. So if move configurations in that file, we don't have to specify the path to file explicitly in the kubectl command.
 
 The kubeconig file has three options: 
 
@@ -118,7 +118,7 @@ The kubeconig file has three options:
 # kubeconfig-definition file. We don't need to create any k8s object. The kubectl will read it
 apiVersion: v1
 kind: Config
-current-context: [context-name] # Default context to be use by kubectl
+current-context: [context-name] # Default context to be used by kubectl
 clusters:
   - name: [server-name]
     cluster:
@@ -164,7 +164,7 @@ There are different authorization mechanisms supported by k8s:
 
 There are two more authorization modes in addition to those above: **AlwaysAllow** (default) and **AlwaysDeny**.
 
-Those modes are configured using the authorization-mode on the kube apiserver: `--authorization-mode=Node,RBAC,WebHook`. When we have multiple modes configured, the request is authorized using each mode in the order it is specified. When a mode denies a request, it gets to the next mode. As soon as a mode approuves the request, no more checks are done and the user is granted permission.
+Those modes are configured using the authorization-mode on the kube apiserver: `--authorization-mode=Node,RBAC,WebHook`. When we have multiple modes configured, the request is authorized using each mode in the order it is specified. When a mode denies a request, it gets to the next mode. As soon as a mode approves the request, no more checks are done and the user is granted permission.
 
 ```yaml
 # role-definition-file.yaml
@@ -177,8 +177,9 @@ rules:
     resources: ["pods"]
     verbs: ["create", "list", "get"]
     resourcesNames: ["resource-name-1", "resource-name-2"] # If we want to give access only to certain pods.
-...
+```
 
+```yaml
 # role-bindings-definition-file.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -207,6 +208,57 @@ $ kubectl auth can-i [verb] [resource] <--namespace [namespace]> --as [username]
 ```
 
 ## Cluster Roles
+
+Roles and role bindings are namespaced, meaning they're created within namespaces. If we specified a namespace, they're 
+created in the default namespace and control access within that namespace alone. K8s namespaces are used to isolate 
+resources like pods, services, deployments, etc. But we cannot use them to isolate nodes. Those are **cluster wide** or 
+**cluster scoped resources**. They cannot be associated to any particular namespace. So the resources are categorized as
+ either namespaced or cluster scoped (pv, nodes, cluster roles, cluster role bindings, namespaces, etc.).
+
+To see the k8s namespaced or cluster scoped resources, run the command:
+
+```shell
+$ kubectl api-resources --namespaced=true
+$ kubectl api-resources --namespaced=false
+```
+
+Cluster roles are just like roles except they are for cluster scoped resources. For example, a cluster admin role can be
+ created to provide a cluster administrator permissions to view, create or delete nodes in a cluster. Similarly, a 
+storage admin role can be created to authorize a storage admin to create a pv.
+
+```yaml
+# cluster-role-definition.yaml
+apiVersion: v1
+kind: ClusterRole
+metadata:
+  name: [cluster-role-name]
+rules:
+  - apiGroups: ["[api-group]"]
+    resources: ["[api-group]"] # ["nodes"]
+    verbs: ["[verb]"] # ["list", "get", "create", "delete"]
+```
+
+The role binding object links the user to the role.
+
+```yaml
+# cluster-role-definition.yaml
+apiVersion: v1
+kind: ClusterRoleBinding
+metadata:
+  name: [cluster-role-binding-name]
+subjects:
+  - kind: User
+    name: [username]
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: [cluster-role-name]
+  apiGroup: rbac.authorization.k8s.io
+```
+
+**Note:** "Cluster role and cluster binding role are used for cluster scoped resources". That is not a hard rule. We can
+ create a cluster role for namespaced resources as well. When we do that, the user will have access to these resources 
+across all namespaces. 
 
 ## Admission Controllers
 

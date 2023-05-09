@@ -25,3 +25,5 @@ server2.company.com
 server3.company.com
 server3.company.com
 ```
+
+`$ ansible [target-machine] -m ping -i [inventory-file] # Test Ansible controller can reach a target machine`

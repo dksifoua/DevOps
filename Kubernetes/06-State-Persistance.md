@@ -251,9 +251,9 @@ spec:
         name: [persistent-volume-claim-name]
       spec:
       storageClassName: [storage-class-name]
-        accessmodes:
-          - [access-mode] # ReadonlyMany | ReadWriteOne | ReadWriteMany
-        resources:
+      accessModes:
+        - [access-mode] # ReadonlyMany | ReadWriteOne | ReadWriteMany
+      resources:
           requests:
             storage: [storage-request] # eg. 500Mi
 ```

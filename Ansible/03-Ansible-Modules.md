@@ -1,0 +1,70 @@
+# Ansible Modules
+
+Ansible's modules are categorized into various groups based on their functionality.
+
+- **System** modules are actions to be performed at a system level
+  - User
+  - Group
+  - Hostname
+  - Ip tables
+  - Lvg (logical volume group)
+  - Lvol (logical volume)
+  - Make
+  - Mount
+  - Ping
+  - Timezone
+  - Systemd
+  - Service
+- **Command** modules are used to execute commands or scripts on a host.
+  - Command (for simple command)
+  - Expect (for interactive command with prompts)
+  - Raw
+  - Script
+  - Shell
+- **File** modules help work with files
+  - Acl
+  - Archive
+  - Copy
+  - File
+  - Find
+  - Lineinfile
+  - Replace
+  - Stat
+  - Template
+  - Unarchive
+- **Database** modules help in working with databases
+  - Mongodb
+  - Mssql
+  - Mysql
+  - Postgresql
+  - Proxysql
+  - Vertica
+- **Cloud** modules have a vast collection of modules for various different cloud providers
+  - Amazon
+  - Atomic
+  - Azure
+  - Digital Ocean
+  - Docker
+  - Google
+  - Linode
+  - Openstack
+  - VMWare
+  - etc.
+- **Windows** modules help using ansible in a windows environment
+  - Win_copy
+  - Win_command
+  - Win_domain
+  - Win_file
+  - Win_iss_website
+  - Win_msg
+  - Win_msi
+  - Win_package
+  - Win_ping
+  - Win_path
+  - Win_robocopy
+  - Win_regedit
+  - Win_shell
+  - Win_service
+  - Win_user
+  - etc.
+- etc.

@@ -135,8 +135,8 @@ been created to address a very specific goal. With that in mind, these can be br
 Terraform is a free and open source tool, which was developed by HashiCorp. It is installed as single binary, which can 
 be set up very quickly, allowing us to build, manage and destroy infra in a matter of minutes. One of the biggest 
 advantage of terraform is its ability to deploy infra across multiple platforms including private and public cloud, such
- as on premise cluster and all cloud solutions. Terraform infra management on so many different kind of platforms is achieved through **providers**. Providers help 
-terraform to manage third party platforms through their apis.
+ as on premise cluster and all cloud solutions. Terraform infra management on so many different kind of platforms is 
+achieved through **providers**. Providers help terraform to manage third party platforms through their apis.
 
 Terraform uses **HCL - HashiCorp Configuration Language** which is a simple declarative language to define the infra 
 resources to be provision as blocks of code. All infra resources can be defined within a config files that have a `.tf` 

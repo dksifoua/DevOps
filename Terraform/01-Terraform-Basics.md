@@ -56,3 +56,79 @@ Terraform has been successfully initialized!
 ```
 
 The `terraform init`command can be run as many times as needed without impacting the actual infra that is deployed. The plugins are downloaded into a hidden directory called `.terraform/plugins` in the working directory containing the configuration files.
+
+## Configuration Directory
+
+- `main.tf`: main configuration file containing resource definition
+- `variables.tf`: contains variable declaration
+- `outputs.tf`: contains outputs from resources
+- `providers.tf`: contains provider definition
+
+## Multiple Providers
+
+Terraform supports the use of multiple providers within the same configuration.
+
+```terraform
+# main.tf
+resource "local_file" "pet" {
+    filename = "/root/pets.txt"
+    content = "We love pets!"
+}
+
+resource "random_pet" "my-pet" {
+    prefix = "Mrs"
+    separator = "."
+    length = "1"
+}
+```
+
+## Define Input Variables
+
+```terraform
+# variables.tf
+variable "filename" {
+    default = "/root/pets.txt"
+    type = string
+    description = "the path of local file"
+}
+
+variable "content" {
+    default = "We love pets!"
+    type = string
+    description = "Lorem ipsum"
+}
+
+variable "prefix" {
+    default = "Mrs"
+    type = string
+    description = "Lorem ipsum"
+}
+
+variable "separator" {
+    default = "."
+    type = string
+    description = "Lorem ipsum"
+}
+
+variable "length" {
+    default = "1"
+    type = number
+    description = "Lorem ipsum"
+}
+```
+
+```terraform
+# main.tf
+resource "local_file" "pet" {
+    filename = "/root/pets.txt"
+    content = "We love pets!"
+}
+resource "random_pet" "my-pet" {
+    prefix = "Mrs"
+    separator = "."
+    length = "1"
+}
+```
+
+## Understanding the Variable Block
+
